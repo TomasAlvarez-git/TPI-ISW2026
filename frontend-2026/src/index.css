@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply m-0 text-[2rem] h-dvh sm:text-base bg-gray-100;
+  }
+  #root {
+    min-width: 360px;
+    @apply h-dvh;
+  }
+}
