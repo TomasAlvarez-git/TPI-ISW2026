@@ -16,7 +16,7 @@ public class Program
     {
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
+                .AddJsonFile("appsettings.Development.json")
                 .Build())
             .Enrich.FromLogContext()
             .CreateLogger();
