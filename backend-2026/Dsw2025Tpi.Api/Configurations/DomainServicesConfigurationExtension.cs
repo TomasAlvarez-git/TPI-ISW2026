@@ -23,7 +23,13 @@ public static class DomainServicesConfigurationExtension
     {
         services.AddDbContext<Dsw2025TpiContext>(options =>
         {
-            options.UseSqlServer(configuration.GetConnectionString("Dsw2025TpiDb"));
+            options.UseSqlServer(
+                configuration.GetConnectionString("Dsw2025TpiDb"),
+                sqlOptions => sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null)
+            );
             options.UseSeeding((c, t) =>
             {
                 var dataDir = Path.Combine(AppContext.BaseDirectory, "Sources");
@@ -34,14 +40,12 @@ public static class DomainServicesConfigurationExtension
             });
         });
 
-         services.AddScoped<IRepository, EfRepository>();
-         services.AddTransient<IOrdersManagementService, OrdersManagementService>();
-         services.AddTransient<IProductsManagementService, ProductsManagementService>();
-
+        services.AddScoped<IRepository, EfRepository>();
+        services.AddTransient<IOrdersManagementService, OrdersManagementService>();
+        services.AddTransient<IProductsManagementService, ProductsManagementService>();
 
         return services;
     }
-
 
     public static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)
     {
@@ -61,18 +65,18 @@ public static class DomainServicesConfigurationExtension
             });
             o.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
-                 {
-                     new OpenApiSecurityScheme
-                     {
-                         Reference = new OpenApiReference
-                         {
-                             Type = ReferenceType.SecurityScheme,
-                             Id = "Bearer"
-                         }
-                     },
-                     Array.Empty<string>()
-                 }
-             });
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
         });
         return services;
     }
@@ -115,16 +119,20 @@ public static class DomainServicesConfigurationExtension
 
         services.AddDbContext<AuthenticateContext>(options =>
         {
-            options.UseSqlServer(configuration.GetConnectionString("Dsw2025TpiDb"));
+            options.UseSqlServer(
+                configuration.GetConnectionString("Dsw2025TpiDb"),
+                sqlOptions => sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null)
+            );
         });
-
 
         return services;
     }
 
     public static IServiceCollection AddRateLimiterService(this IServiceCollection services)
     {
-
         services.AddRateLimiter(options =>
         {
             options.AddFixedWindowLimiter("fixed", opt =>
