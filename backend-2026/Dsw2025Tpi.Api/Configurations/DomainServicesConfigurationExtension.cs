@@ -14,11 +14,55 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using Serilog;
 
 namespace Dsw2025Tpi.Api.Configurations;
 
 public static class DomainServicesConfigurationExtension
 {
+    public static async Task CreateRoles(this IServiceCollection services, WebApplication app, IConfiguration configuration)
+    {
+        var rolesToCreate = configuration.GetSection("Roles").Get<List<string>>();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            foreach (var roleName in rolesToCreate!)
+            {
+                if (!await roleManager.RoleExistsAsync(roleName))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                }
+            }
+
+            var admin = configuration.GetSection("DefaultAdmin");
+            var adminEmail = admin.GetValue<string>("email");
+            var adminPassword = admin.GetValue<string>("password");
+            var adminName = admin.GetValue<string>("username");
+
+            UserManager<IdentityUser> manager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            var userAdmin = await manager.FindByNameAsync(adminName!);
+            if (userAdmin is null)
+            {
+                var user = new IdentityUser
+                {
+                    UserName = adminName,
+                    Email = adminEmail
+                };
+
+                var result = await manager.CreateAsync(user, adminPassword!);
+
+                var roleResult = await manager.AddToRoleAsync(user, "ADMIN");
+
+                if (!result.Succeeded || !roleResult.Succeeded)
+                {
+                    Log.Error(string.Join(", ", result.Errors.Select(e => e.Description)));
+                    throw new Exception();
+                }
+            }
+        }
+    }
     public static IServiceCollection AddDomainServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<Dsw2025TpiContext>(options =>
