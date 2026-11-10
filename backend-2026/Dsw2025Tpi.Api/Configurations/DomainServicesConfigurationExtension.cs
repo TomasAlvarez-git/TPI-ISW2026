@@ -14,16 +14,66 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using Serilog;
 
 namespace Dsw2025Tpi.Api.Configurations;
 
 public static class DomainServicesConfigurationExtension
 {
+    public static async Task CreateRoles(this IServiceCollection services, WebApplication app, IConfiguration configuration)
+    {
+        var rolesToCreate = configuration.GetSection("Roles").Get<List<string>>();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            foreach (var roleName in rolesToCreate!)
+            {
+                if (!await roleManager.RoleExistsAsync(roleName))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                }
+            }
+
+            var admin = configuration.GetSection("DefaultAdmin");
+            var adminEmail = admin.GetValue<string>("email");
+            var adminPassword = admin.GetValue<string>("password");
+            var adminName = admin.GetValue<string>("username");
+
+            UserManager<IdentityUser> manager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            var userAdmin = await manager.FindByNameAsync(adminName!);
+            if (userAdmin is null)
+            {
+                var user = new IdentityUser
+                {
+                    UserName = adminName,
+                    Email = adminEmail
+                };
+
+                var result = await manager.CreateAsync(user, adminPassword!);
+
+                var roleResult = await manager.AddToRoleAsync(user, "ADMIN");
+
+                if (!result.Succeeded || !roleResult.Succeeded)
+                {
+                    Log.Error(string.Join(", ", result.Errors.Select(e => e.Description)));
+                    throw new Exception();
+                }
+            }
+        }
+    }
     public static IServiceCollection AddDomainServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<Dsw2025TpiContext>(options =>
         {
-            options.UseSqlServer(configuration.GetConnectionString("Dsw2025TpiDb"));
+            options.UseSqlServer(
+                configuration.GetConnectionString("Dsw2025TpiDb"),
+                sqlOptions => sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null)
+            );
             options.UseSeeding((c, t) =>
             {
                 var dataDir = Path.Combine(AppContext.BaseDirectory, "Sources");
@@ -34,14 +84,12 @@ public static class DomainServicesConfigurationExtension
             });
         });
 
-         services.AddScoped<IRepository, EfRepository>();
-         services.AddTransient<IOrdersManagementService, OrdersManagementService>();
-         services.AddTransient<IProductsManagementService, ProductsManagementService>();
-
+        services.AddScoped<IRepository, EfRepository>();
+        services.AddTransient<IOrdersManagementService, OrdersManagementService>();
+        services.AddTransient<IProductsManagementService, ProductsManagementService>();
 
         return services;
     }
-
 
     public static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)
     {
@@ -61,18 +109,18 @@ public static class DomainServicesConfigurationExtension
             });
             o.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
-                 {
-                     new OpenApiSecurityScheme
-                     {
-                         Reference = new OpenApiReference
-                         {
-                             Type = ReferenceType.SecurityScheme,
-                             Id = "Bearer"
-                         }
-                     },
-                     Array.Empty<string>()
-                 }
-             });
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
         });
         return services;
     }
@@ -115,16 +163,20 @@ public static class DomainServicesConfigurationExtension
 
         services.AddDbContext<AuthenticateContext>(options =>
         {
-            options.UseSqlServer(configuration.GetConnectionString("Dsw2025TpiDb"));
+            options.UseSqlServer(
+                configuration.GetConnectionString("Dsw2025TpiDb"),
+                sqlOptions => sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null)
+            );
         });
-
 
         return services;
     }
 
     public static IServiceCollection AddRateLimiterService(this IServiceCollection services)
     {
-
         services.AddRateLimiter(options =>
         {
             options.AddFixedWindowLimiter("fixed", opt =>

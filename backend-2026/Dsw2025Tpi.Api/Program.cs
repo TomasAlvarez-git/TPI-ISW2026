@@ -16,7 +16,7 @@ public class Program
     {
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
+                .AddJsonFile("appsettings.Development.json")
                 .Build())
             .Enrich.FromLogContext()
             .CreateLogger();
@@ -46,46 +46,8 @@ public class Program
 
         var app = builder.Build();
 
-        var rolesToCreate = builder.Configuration.GetSection("Roles").Get<List<string>>();
+        await builder.Services.CreateRoles(app, builder.Configuration);
 
-        using (var scope = app.Services.CreateScope())
-        {
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-            foreach (var roleName in rolesToCreate!)
-            {
-                if (!await roleManager.RoleExistsAsync(roleName))
-                {
-                    await roleManager.CreateAsync(new IdentityRole(roleName));
-                }
-            }
-
-            var admin = builder.Configuration.GetSection("DefaultAdmin");
-            var adminEmail = admin.GetValue<string>("email");
-            var adminPassword = admin.GetValue<string>("password");
-            var adminName = admin.GetValue<string>("username");
-
-            UserManager<IdentityUser> manager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-            var userAdmin = await manager.FindByNameAsync(adminName!);
-            if (userAdmin is null)
-            {
-                var user = new IdentityUser
-                {
-                    UserName = adminName,
-                    Email = adminEmail
-                };
-
-                var result = await manager.CreateAsync(user, adminPassword!);
-
-                var roleResult = await manager.AddToRoleAsync(user, "ADMIN");
-
-                if (!result.Succeeded || !roleResult.Succeeded)
-                {
-                    Log.Error(string.Join(", ", result.Errors.Select(e => e.Description)));
-                    throw new Exception();
-                }
-            }
-        }
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
