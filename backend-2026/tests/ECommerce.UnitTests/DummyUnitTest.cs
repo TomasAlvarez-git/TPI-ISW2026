@@ -12,3 +12,4 @@ public class DummyUnitTest
         true.Should().BeTrue();
     }
 }
+

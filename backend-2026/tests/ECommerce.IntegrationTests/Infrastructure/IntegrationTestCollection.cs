@@ -6,3 +6,4 @@ namespace ECommerce.IntegrationTests.Infrastructure;
 public class IntegrationTestCollection : ICollectionFixture<CustomWebApplicationFactory>
 {
 }
+
