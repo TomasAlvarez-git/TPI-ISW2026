@@ -16,16 +16,26 @@ namespace Dsw2025Tpi.UnitTest
         {
             // 1. ARRANGE (Preparar dependencias y mocks)
             var repoMock = new Mock<IRepository>();
-            var productoNuevo = new Product { Sku = "SKU-1001",
-                InternalCode = "INT-2001", Name = "Laptop", CurrentUnitPrice = 1200, StockQuantity = 20 };
+            var productoNuevo = new Product { Sku = "SKU-9567",
+                InternalCode = "INT-9567", Name = "Auriculares con cancelacion de ruido", CurrentUnitPrice = 1200, StockQuantity = 20 };
 
-            var productResponse = new ProductModel.ResponseProduct(productoNuevo.Id, productoNuevo.Sku, productoNuevo.InternalCode,
-                productoNuevo.Name, productoNuevo.Description, productoNuevo.CurrentUnitPrice,
-                productoNuevo.StockQuantity, productoNuevo.IsActive);
+            var productoIdEsperado = Guid.NewGuid();
 
-            var logger = new Mock<ILogger<ProductsManagementService>>().Object;
-            repoMock.Setup(r => r.Add(It.IsAny<Product>())).ReturnsAsync(productoNuevo);
-            var service = new ProductsManagementService(repoMock.Object, logger);
+            var loggerMock = new Mock<ILogger<ProductsManagementService>>();
+            repoMock.Setup(r => r.Add(It.IsAny<Product>()))
+                    .ReturnsAsync((Product p) => new Product
+                    {
+                        Id = Guid.NewGuid(),
+                        Sku = p.Sku,
+                        InternalCode = p.InternalCode,
+                        Name = p.Name,
+                        Description = p.Description,
+                        CurrentUnitPrice = p.CurrentUnitPrice,
+                        StockQuantity = p.StockQuantity,
+                        IsActive = true
+                    });
+
+            var service = new ProductsManagementService(repoMock.Object, loggerMock.Object);
 
             // 2. ACT (Ejecutar la unidad)
             var productRequest = new ProductModel.RequestProduct(productoNuevo.Sku, productoNuevo.InternalCode, productoNuevo.Name,
@@ -34,6 +44,7 @@ namespace Dsw2025Tpi.UnitTest
 
             // 3. ASSERT (Verificar resultados)
             Assert.NotNull(resultado);
+            Assert.NotEqual(Guid.Empty, resultado.Id);
             Assert.Equal(productRequest.Sku, resultado.Sku);
             Assert.Equal(productRequest.InternalCode, resultado.InternalCode);
             Assert.Equal(productRequest.Name, resultado.Name);
