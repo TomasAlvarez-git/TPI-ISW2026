@@ -14,7 +14,7 @@ using Dsw2025Tpi.Application.Exceptions;
 
 namespace Dsw2025Tpi.UnitTest
 {
-    public class ProductServiceTest
+    public class ProductServiceCreateTest
     {
         [Fact]
         public async Task AddProduct_WithValidData_ReturnsProductAndCallsRepositoryAdd()
