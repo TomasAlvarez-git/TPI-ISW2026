@@ -88,4 +88,3 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         }
     }
 }
-
