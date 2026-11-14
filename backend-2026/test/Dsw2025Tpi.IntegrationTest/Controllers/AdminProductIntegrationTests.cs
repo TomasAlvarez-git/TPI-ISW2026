@@ -10,10 +10,10 @@ using FluentAssertions;
 using Dsw2025Tpi.Application.Dtos;
 using Dsw2025Tpi.Domain.Entities;
 using Dsw2025Tpi.Data;
-using ECommerce.IntegrationTests.Infrastructure;
+using Dsw2025Tpi.IntegrationTest.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 
-namespace ECommerce.IntegrationTests.Controllers
+namespace Dsw2025Tpi.IntegrationTest.Controllers
 {
     [Collection("IntegrationTests")]
     public class AdminProductIntegrationTests

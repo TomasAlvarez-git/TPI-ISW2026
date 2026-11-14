@@ -1,8 +1,8 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Dsw2026Tpi.E2ETests.Models;
+using Dsw2025Tpi.E2ETest.Models;
 
-namespace Dsw2026Tpi.E2ETests.Helpers;
+namespace Dsw2025Tpi.E2ETest.Helpers;
 
 public class ApiClient : IDisposable
 {

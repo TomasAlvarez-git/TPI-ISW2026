@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
-using Dsw2026Tpi.E2ETests.Helpers;
-using Dsw2026Tpi.E2ETests.Models;
+using Dsw2025Tpi.E2ETest.Helpers;
+using Dsw2025Tpi.E2ETest.Models;
 
-namespace Dsw2026Tpi.E2ETests.Flows;
+namespace Dsw2025Tpi.E2ETest.Flows;
 
 [Trait("Category", "E2E")]
 public class CreateOrderFlowTests : IAsyncLifetime

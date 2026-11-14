@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Xunit;
 
-namespace ECommerce.UnitTests;
+namespace Dsw2025Tpi.UnitTest;
 
 public class DummyUnitTest
 {

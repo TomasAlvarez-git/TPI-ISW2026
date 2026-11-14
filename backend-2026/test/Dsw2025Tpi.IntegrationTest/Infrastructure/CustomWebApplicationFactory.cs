@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ECommerce.IntegrationTests.Infrastructure;
+namespace Dsw2025Tpi.IntegrationTest.Infrastructure;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {

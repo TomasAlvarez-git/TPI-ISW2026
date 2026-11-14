@@ -1,4 +1,4 @@
-namespace Dsw2026Tpi.E2ETests.Helpers;
+namespace Dsw2025Tpi.E2ETest.Helpers;
 
 public static class TestData
 {
