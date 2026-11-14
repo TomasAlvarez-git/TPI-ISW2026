@@ -1,8 +1,8 @@
 using FluentAssertions;
-using ECommerce.IntegrationTests.Infrastructure;
+using Dsw2025Tpi.IntegrationTest.Infrastructure;
 using Xunit;
 
-namespace ECommerce.IntegrationTests;
+namespace Dsw2025Tpi.IntegrationTest;
 
 [Collection("IntegrationTests")]
 public class DummyIntegrationTest

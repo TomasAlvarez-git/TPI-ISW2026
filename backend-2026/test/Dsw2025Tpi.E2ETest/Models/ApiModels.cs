@@ -1,4 +1,4 @@
-namespace Dsw2026Tpi.E2ETests.Models;
+namespace Dsw2025Tpi.E2ETest.Models;
 
 public record RegisterRequest(string Username, string Password, string Email, string Role);
 public record LoginRequest(string Username, string Password);

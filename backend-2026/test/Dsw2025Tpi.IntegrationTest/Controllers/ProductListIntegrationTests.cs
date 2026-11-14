@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 using Dsw2025Tpi.Application.Dtos;
 using Dsw2025Tpi.Data;
 using Dsw2025Tpi.Domain.Entities;
-using ECommerce.IntegrationTests.Infrastructure;
+using Dsw2025Tpi.IntegrationTest.Infrastructure;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace ECommerce.IntegrationTests.Controllers
+namespace Dsw2025Tpi.IntegrationTest.Controllers
 {
     [Collection("IntegrationTests")]
     public class ProductListIntegrationTests
