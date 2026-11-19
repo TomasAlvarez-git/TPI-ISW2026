@@ -8,6 +8,7 @@ using Moq;
 
 using Microsoft.Extensions.Logging;
 using Azure;
+using System.Linq.Expressions;
 using System.Net;
 using FluentAssertions;
 using Dsw2025Tpi.Application.Exceptions;
@@ -84,35 +85,26 @@ namespace Dsw2025Tpi.UnitTest
             var productoIdEsperado = Guid.NewGuid();
 
             var loggerMock = new Mock<ILogger<ProductsManagementService>>();
-            repoMock.Setup(r => r.Add(It.IsAny<Product>()))
-                    .ReturnsAsync((Product p) => new Product
+            repoMock.Setup(r => r.First(
+                    It.IsAny<Expression<Func<Product, bool>>>(),
+                    It.IsAny<string[]>()))
+                    .ReturnsAsync(new Product
                     {
-                        Id = Guid.NewGuid(),
-                        Sku = p.Sku,
-                        InternalCode = p.InternalCode,
-                        Name = p.Name,
-                        Description = p.Description,
-                        CurrentUnitPrice = p.CurrentUnitPrice,
-                        StockQuantity = p.StockQuantity,
+                        Id = productoIdEsperado,
+                        Sku = "SKU-9567",
+                        InternalCode = "INT-0001",
                         IsActive = true
                     });
 
             var service = new ProductsManagementService(repoMock.Object, loggerMock.Object);
 
-            // 2. ACT (Ejecutar la unidad)
-            try
-            {
-                var productRequest = new ProductModel.RequestProduct(productoNuevo.Sku, productoNuevo.InternalCode, productoNuevo.Name,
-                    productoNuevo.Description, productoNuevo.CurrentUnitPrice, (int)productoNuevo.StockQuantity);
-                var resultado = await service.AddProduct(productRequest);
-            }
-            catch (DuplicatedSkuException ex)
-            {
-                // 3. ASSERT (Verificar resultados)
-                Assert.Equal("Un producto con este SKU ya existe SKU-9567", ex.Message);
-                return;
-            }
-            repoMock.Verify(r => r.Add(It.IsAny<Product>()), Times.Once);
+            // 2. ACT & 3. ASSERT (Verificar resultados)
+            var productRequest = new ProductModel.RequestProduct(productoNuevo.Sku, productoNuevo.InternalCode, productoNuevo.Name,
+                productoNuevo.Description, productoNuevo.CurrentUnitPrice, (int)productoNuevo.StockQuantity);
+
+            var ex = await Assert.ThrowsAsync<DuplicatedSkuException>(() => service.AddProduct(productRequest));
+            Assert.Equal("Un producto con este SKU ya existe SKU-9567", ex.Message);
+            repoMock.Verify(r => r.Add(It.IsAny<Product>()), Times.Never);
         }
         [Fact]
         public async Task AddProduct_WithInvalidStock_ThrowsInvalidDataException()
@@ -129,38 +121,16 @@ namespace Dsw2025Tpi.UnitTest
                 StockQuantity = -5
             };
 
-            var productoIdEsperado = Guid.NewGuid();
-
             var loggerMock = new Mock<ILogger<ProductsManagementService>>();
-            repoMock.Setup(r => r.Add(It.IsAny<Product>()))
-                    .ReturnsAsync((Product p) => new Product
-                    {
-                        Id = Guid.NewGuid(),
-                        Sku = p.Sku,
-                        InternalCode = p.InternalCode,
-                        Name = p.Name,
-                        Description = p.Description,
-                        CurrentUnitPrice = p.CurrentUnitPrice,
-                        StockQuantity = p.StockQuantity,
-                        IsActive = true
-                    });
-
             var service = new ProductsManagementService(repoMock.Object, loggerMock.Object);
 
-            // 2. ACT (Ejecutar la unidad)
-            try
-            {
-                var productRequest = new ProductModel.RequestProduct(productoNuevo.Sku, productoNuevo.InternalCode, productoNuevo.Name,
-                    productoNuevo.Description, productoNuevo.CurrentUnitPrice, (int)productoNuevo.StockQuantity);
-                var resultado = await service.AddProduct(productRequest);
-            }
-            catch (NumbersAndLettersException ex)
-            {
-                // 3. ASSERT (Verificar resultados)
-                Assert.Equal("StockQuantity: input no valido, debe ser una cadena de letras y/o numeros", ex.Message);
-                return;
-            }
-            repoMock.Verify(r => r.Add(It.IsAny<Product>()), Times.Once);
+            // 2. ACT & 3. ASSERT (Verificar resultados)
+            var productRequest = new ProductModel.RequestProduct(productoNuevo.Sku, productoNuevo.InternalCode, productoNuevo.Name,
+                productoNuevo.Description, productoNuevo.CurrentUnitPrice, (int)productoNuevo.StockQuantity);
+
+            var ex = await Assert.ThrowsAsync<NumbersAndLettersException>(() => service.AddProduct(productRequest));
+            Assert.Equal("StockQuantity: input no valido, debe ser una cadena de letras y/o numeros", ex.Message);
+            repoMock.Verify(r => r.Add(It.IsAny<Product>()), Times.Never);
         }
 
         [Fact]
@@ -178,40 +148,16 @@ namespace Dsw2025Tpi.UnitTest
                 StockQuantity = 50
             };
 
-            var productoIdEsperado = Guid.NewGuid();
-
             var loggerMock = new Mock<ILogger<ProductsManagementService>>();
-            repoMock.Setup(r => r.Add(It.IsAny<Product>()))
-                    .ReturnsAsync((Product p) => new Product
-                    {
-                        Id = Guid.NewGuid(),
-                        Sku = p.Sku,
-                        InternalCode = p.InternalCode,
-                        Name = p.Name,
-                        Description = p.Description,
-                        CurrentUnitPrice = p.CurrentUnitPrice,
-                        StockQuantity = p.StockQuantity,
-                        IsActive = true
-                    });
-
             var service = new ProductsManagementService(repoMock.Object, loggerMock.Object);
 
-            // 2. ACT (Ejecutar la unidad)
-            try
-            {
-                var productRequest = new ProductModel.RequestProduct(productoNuevo.Sku, productoNuevo.InternalCode, productoNuevo.Name,
-                    productoNuevo.Description, productoNuevo.CurrentUnitPrice, (int)productoNuevo.StockQuantity);
-                var resultado = await service.AddProduct(productRequest);
-            }
-            catch (NumbersAndLettersException ex)
-            {
-                // 3. ASSERT (Verificar resultados)
-                Assert.Equal("CurrentUnitPrice: input no valido, debe ser una cadena de letras y/o numeros", ex.Message);
-                return;
-            }
+            // 2. ACT & 3. ASSERT (Verificar resultados)
+            var productRequest = new ProductModel.RequestProduct(productoNuevo.Sku, productoNuevo.InternalCode, productoNuevo.Name,
+                productoNuevo.Description, productoNuevo.CurrentUnitPrice, (int)productoNuevo.StockQuantity);
 
-
-            repoMock.Verify(r => r.Add(It.IsAny<Product>()), Times.Once);
+            var ex = await Assert.ThrowsAsync<NumbersAndLettersException>(() => service.AddProduct(productRequest));
+            Assert.Equal("CurrentUnitPrice: input no valido, debe ser una cadena de letras y/o numeros", ex.Message);
+            repoMock.Verify(r => r.Add(It.IsAny<Product>()), Times.Never);
         }
     }
 }
