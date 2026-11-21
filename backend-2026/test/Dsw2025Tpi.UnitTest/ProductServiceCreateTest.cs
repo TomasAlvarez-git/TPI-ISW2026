@@ -55,7 +55,7 @@ namespace Dsw2025Tpi.UnitTest
             var resultado = await service.AddProduct(productRequest);
 
             // 3. ASSERT (Verificar resultados)
-            Assert.Null(resultado);
+            Assert.NotNull(resultado);
             Assert.NotEqual(Guid.Empty, resultado.Id);
             Assert.Equal(productRequest.Sku, resultado.Sku);
             Assert.Equal(productRequest.InternalCode, resultado.InternalCode);
