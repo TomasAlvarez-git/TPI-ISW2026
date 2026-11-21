@@ -6,19 +6,21 @@ namespace Dsw2025Tpi.E2ETest.Helpers;
 
 public class ApiClient : IDisposable
 {
-    private const string DefaultBaseUrl = "http://localhost:8080";
-
     public HttpClient Http { get; }
     public LoginResponse? Session { get; private set; }
 
     public ApiClient()
     {
-        var baseUrl = Environment.GetEnvironmentVariable("E2E_BASE_URL") ?? DefaultBaseUrl;
+        var baseUrl = Environment.GetEnvironmentVariable("E2E_BASE_URL");
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            baseUrl = E2EApiHost.EnsureStarted();
+        }
 
         Http = new HttpClient(new RateLimitRetryHandler())
         {
             BaseAddress = new Uri(baseUrl),
-            Timeout = TimeSpan.FromSeconds(90) 
+            Timeout = TimeSpan.FromSeconds(90)
         };
     }
 
