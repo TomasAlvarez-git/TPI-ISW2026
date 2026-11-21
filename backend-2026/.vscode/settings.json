@@ -1,0 +1,6 @@
+{
+  "dotnet.defaultSolution": "Dsw2025Tpi.sln",
+  "dotnet-test-explorer.testProjectPath": "test/**/*Test*.csproj",
+  "dotnet-test-explorer.autoExpandTree": true,
+  "dotnet-test-explorer.showCodeLens": true
+}

@@ -250,5 +250,56 @@ namespace Dsw2025Tpi.UnitTest
 
             repoMock.Verify(r => r.GetFiltered<Product>(It.IsAny<Expression<Func<Product, bool>>>()), Times.Once);
         }
+
+        [Fact]
+        public async Task GetProducts_WithSearchTerm_FiltersByNameSkuOrInternalCode()
+        {
+            // 1. ARRANGE (Preparar dependencias y mocks)
+            var productsInDb = new List<Product> 
+            {
+                new Product
+                {
+                    Sku = "SKU-9567",
+                    InternalCode = "INT-9567",
+                    Name = "Auriculares con cancelacion de ruido",
+                    Description = "Auriculares con cancelacion de ruido",
+                    CurrentUnitPrice = 1200,
+                    StockQuantity = 20,
+                    IsActive = true
+                },
+                new Product
+                {
+                    Sku = "SKU-9569",
+                    InternalCode = "INT-9569",
+                    Name = "Auriculares sin cancelacion de ruido",
+                    Description = "Auriculares sin cancelacion de ruido",
+                    CurrentUnitPrice = 1200,
+                    StockQuantity = 20,
+                    IsActive = false
+                }
+            };
+
+            var repoMock = CreateRepositoryMock(productsInDb);
+            var loggerMock = new Mock<ILogger<ProductsManagementService>>();
+            var service = new ProductsManagementService(repoMock.Object, loggerMock.Object);
+
+            // 2. ACT (Ejecutar la unidad)
+            var resultado = await service.GetAuthProducts(new ProductModel.FilterAuthProduct("active", "Auriculares con", null, null));
+
+            // 3. ASSERT (Verificar resultados)
+            Assert.NotNull(resultado);
+            Assert.Single(resultado.Products);
+            Assert.All(resultado.Products, p => Assert.True(p.IsActive));
+            Assert.Equal("SKU-9567", resultado.Products[0].Sku);
+            Assert.Equal(1, resultado.TotalFiltered);
+            Assert.Equal("Auriculares con cancelacion de ruido", resultado.Products[0].Name);
+            Assert.Equal(1200, resultado.Products[0].CurrentUnitPrice);
+            Assert.Equal(20, resultado.Products[0].StockQuantity);
+            Assert.Equal("INT-9567", resultado.Products[0].InternalCode);
+
+
+            repoMock.Verify(r => r.GetFiltered<Product>(It.IsAny<Expression<Func<Product, bool>>>()), Times.Once);
+        }
+        
     }
 }
